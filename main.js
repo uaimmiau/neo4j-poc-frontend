@@ -1,5 +1,5 @@
 // ---- CONFIG ----
-const API_BASE = "https://neo4j-poc-backend-69d2dh8rr0ee.uaimmiau.deno.net";
+const API_BASE = "https://neo4j-poc-backend-cxgamwfct0vy.uaimmiau.deno.net/";
 
 // ---- DOM refs ----
 const apiBaseEl = document.getElementById("apiBase");
