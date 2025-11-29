@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Neo4j Manufacturing PoC – API Explorer</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <main class="app">
+            <section class="card">
+                <header class="header">
+                    <div class="title-block">
+                        <h1>
+                            Neo4j Manufacturing PoC
+                            <span class="title-pill">API Explorer</span>
+                        </h1>
+                        <p class="subtitle">
+                            Explore and test your Deno + Neo4j backend endpoints
+                            for the factory traceability proof-of-concept.
+                        </p>
+                    </div>
+                    <div class="env-block">
+                        <div class="env-label">API Base URL</div>
+                        <div class="env-url" id="apiBase"></div>
+                        <div class="status-chip" id="healthChip">
+                            <span class="dot" id="healthDot"></span>
+                            <span id="healthText">Checking health…</span>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="main-grid">
+                    <!-- Left: Interactive panels -->
+                    <div class="left-column">
+                        <!-- Suppliers -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div>
+                                    <div class="panel-title">
+                                        Supplier quality overview
+                                    </div>
+                                    <p class="panel-subtitle">
+                                        Calls
+                                        <code>/api/suppliers/quality</code> and
+                                        shows reject rate per supplier.
+                                    </p>
+                                </div>
+                                <button class="btn" id="btnLoadSuppliers">
+                                    Load data
+                                </button>
+                            </div>
+                            <div
+                                id="suppliersResults"
+                                class="results results-empty"
+                            >
+                                Click “Load data” to fetch supplier quality
+                                metrics.
+                            </div>
+                        </div>
+
+                        <!-- Serial trace -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div>
+                                    <div class="panel-title">
+                                        Trace a serial
+                                    </div>
+                                    <p class="panel-subtitle">
+                                        Calls
+                                        <code>/api/serial/:serial/trace</code>
+                                        to find batch, supplier and affected
+                                        serials.
+                                    </p>
+                                </div>
+                            </div>
+                            <form id="traceForm">
+                                <div class="input-row">
+                                    <input
+                                        id="serialInput"
+                                        class="input"
+                                        type="text"
+                                        placeholder="Enter a serial number, e.g. SN_S5_M1_B1_1"
+                                        autocomplete="off"
+                                    />
+                                    <button
+                                        class="btn btn-secondary"
+                                        type="submit"
+                                    >
+                                        Trace
+                                    </button>
+                                </div>
+                                <div
+                                    id="traceError"
+                                    class="error-text"
+                                    style="display: none"
+                                ></div>
+                            </form>
+                            <div
+                                id="traceResults"
+                                class="results results-empty"
+                            >
+                                Submit a serial number to see traceability info.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Endpoint catalog -->
+                    <div class="right-column">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div>
+                                    <div class="panel-title">
+                                        Available endpoints
+                                    </div>
+                                    <p class="panel-subtitle">
+                                        Quick overview of the REST API exposed
+                                        by your backend.
+                                    </p>
+                                </div>
+                                <span class="badge">Read-only PoC</span>
+                            </div>
+                            <div class="endpoint-list">
+                                <article class="endpoint-card">
+                                    <div class="endpoint-top">
+                                        <span class="endpoint-path"
+                                            >GET&nbsp;/api/health</span
+                                        >
+                                        <span class="method">GET</span>
+                                    </div>
+                                    <p class="endpoint-desc">
+                                        Health check used by this page to verify
+                                        connectivity with the Deno backend.
+                                    </p>
+                                    <div class="endpoint-tags">
+                                        <span class="tag">health</span>
+                                        <span class="tag">status</span>
+                                    </div>
+                                </article>
+
+                                <article class="endpoint-card">
+                                    <div class="endpoint-top">
+                                        <span class="endpoint-path"
+                                            >GET&nbsp;/api/suppliers/quality</span
+                                        >
+                                        <span class="method">GET</span>
+                                    </div>
+                                    <p class="endpoint-desc">
+                                        Aggregated reject rate per supplier
+                                        based on <code>Serial</code> and
+                                        <code>Inspection</code>.
+                                    </p>
+                                    <div class="endpoint-tags">
+                                        <span class="tag">analytics</span>
+                                        <span class="tag">suppliers</span>
+                                        <span class="tag">reject-rate</span>
+                                    </div>
+                                </article>
+
+                                <article class="endpoint-card">
+                                    <div class="endpoint-top">
+                                        <span class="endpoint-path"
+                                            >GET&nbsp;/api/serial/:serial/trace</span
+                                        >
+                                        <span class="method">GET</span>
+                                    </div>
+                                    <p class="endpoint-desc">
+                                        Trace a specific serial back to its
+                                        batch and supplier, and list all serials
+                                        from that batch.
+                                    </p>
+                                    <div class="endpoint-tags">
+                                        <span class="tag">traceability</span>
+                                        <span class="tag">root-cause</span>
+                                        <span class="tag">serial</span>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+
+                        <p class="muted helper-text">
+                            Later you can add more panels for new endpoints
+                            (e.g. by material, product model, or a graph
+                            visualization).
+                        </p>
+                    </div>
+                </div>
+
+                <footer class="footer">
+                    <span>Neo4j + Deno Deploy manufacturing PoC</span>
+                    <span>
+                        Backend:&nbsp;
+                        <a
+                            href="https://neo4j-poc-backend-69d2dh8rr0ee.uaimmiau.deno.net/"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            open API root
+                        </a>
+                    </span>
+                </footer>
+            </section>
+        </main>
+
+        <script src="main.js" defer></script>
+    </body>
+</html>
