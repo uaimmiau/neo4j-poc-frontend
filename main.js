@@ -14,6 +14,11 @@ const traceInput = document.getElementById("serialInput");
 const traceResults = document.getElementById("traceResults");
 const traceError = document.getElementById("traceError");
 
+const btnClearDb = document.getElementById("btnClearDb");
+const btnSeedDb = document.getElementById("btnSeedDb");
+const btnRandomSerials = document.getElementById("btnRandomSerials");
+const randomSerialsResults = document.getElementById("randomSerialsResults");
+
 apiBaseEl.textContent = API_BASE;
 
 // ---- helpers ----
@@ -172,11 +177,11 @@ async function handleTraceSubmit(event) {
 
         const affected =
             Array.isArray(data.affectedSerials) && data.affectedSerials.length
-                ? `<ul style="margin:4px 0 0 16px;padding:0;">
+                ? `<ul class="serial-list">
             ${data.affectedSerials
                 .map(
                     (s) =>
-                        `<li style="margin:2px 0;font-family:ui-monospace;">${s}</li>`
+                        `<li><span class="muted">•</span> <span style="font-family:ui-monospace;">${s}</span></li>`
                 )
                 .join("")}
            </ul>`
@@ -220,9 +225,135 @@ async function handleTraceSubmit(event) {
     }
 }
 
+async function clearDatabase() {
+    if (!confirm("This will delete ALL data in Neo4j. Continue?")) {
+        return;
+    }
+    btnClearDb.disabled = true;
+    btnClearDb.textContent = "Clearing…";
+    setResultsEmpty(suppliersResults, "Database cleared (or in progress).");
+
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/clear`, {
+            method: "POST",
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        console.log("Clear result:", data);
+        setResultsEmpty(
+            suppliersResults,
+            "Database cleared. Seed data again to get demo content."
+        );
+        setResultsEmpty(
+            randomSerialsResults,
+            "Database is empty – seed data first."
+        );
+        setResultsEmpty(traceResults, "Database cleared.");
+    } catch (err) {
+        console.error("Clear DB failed", err);
+        setResultsEmpty(
+            suppliersResults,
+            "Error clearing DB. Check console for details."
+        );
+    } finally {
+        btnClearDb.disabled = false;
+        btnClearDb.textContent = "Clear DB";
+    }
+}
+
+async function seedDatabase() {
+    btnSeedDb.disabled = true;
+    btnSeedDb.textContent = "Seeding…";
+    setResultsEmpty(
+        suppliersResults,
+        "Seeding sample data… this may take a moment."
+    );
+
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/seed`, {
+            method: "POST",
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        console.log("Seed result:", data);
+        setResultsEmpty(
+            suppliersResults,
+            "Seeding finished. Click “Load data” to see supplier metrics."
+        );
+    } catch (err) {
+        console.error("Seed DB failed", err);
+        setResultsEmpty(
+            suppliersResults,
+            "Error seeding DB. Check console for details."
+        );
+    } finally {
+        btnSeedDb.disabled = false;
+        btnSeedDb.textContent = "Seed data";
+    }
+}
+
+async function loadRandomSerials() {
+    btnRandomSerials.disabled = true;
+    btnRandomSerials.textContent = "Loading…";
+    setResultsEmpty(randomSerialsResults, "Fetching random serials…");
+
+    try {
+        const res = await fetch(`${API_BASE}/api/serial/random`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        if (
+            !data ||
+            !Array.isArray(data.serials) ||
+            data.serials.length === 0
+        ) {
+            setResultsEmpty(
+                randomSerialsResults,
+                "No serials found. Seed the database first."
+            );
+            return;
+        }
+
+        const listHtml = `
+      <ul class="serial-list">
+        ${data.serials
+            .map(
+                (s) =>
+                    `<li><button type="button" class="serial-button" data-serial="${s}">${s}</button></li>`
+            )
+            .join("")}
+      </ul>
+      <p class="muted">Click a serial to fill the trace form.</p>
+    `;
+
+        setResultsContent(randomSerialsResults, listHtml);
+    } catch (err) {
+        console.error("Random serials failed", err);
+        setResultsEmpty(
+            randomSerialsResults,
+            "Error fetching random serials. Check console for details."
+        );
+    } finally {
+        btnRandomSerials.disabled = false;
+        btnRandomSerials.textContent = "Load 10 serials";
+    }
+}
+
 // ---- init ----
 document.addEventListener("DOMContentLoaded", () => {
     checkHealth();
     btnLoadSuppliers.addEventListener("click", loadSuppliers);
     traceForm.addEventListener("submit", handleTraceSubmit);
+    btnClearDb.addEventListener("click", clearDatabase);
+    btnSeedDb.addEventListener("click", seedDatabase);
+    btnRandomSerials.addEventListener("click", loadRandomSerials);
+
+    // click on random serial → fill trace input
+    randomSerialsResults.addEventListener("click", (event) => {
+        const target = event.target;
+        if (target instanceof HTMLElement && target.dataset.serial) {
+            traceInput.value = target.dataset.serial;
+            traceInput.focus();
+        }
+    });
 });

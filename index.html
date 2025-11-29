@@ -16,8 +16,8 @@
                             <span class="title-pill">API Explorer</span>
                         </h1>
                         <p class="subtitle">
-                            Explore and test your Deno + Neo4j backend endpoints
-                            for the factory traceability proof-of-concept.
+                            Simple UI to poke at your Deno + Neo4j backend for
+                            the factory traceability proof-of-concept.
                         </p>
                     </div>
                     <div class="env-block">
@@ -41,9 +41,9 @@
                                         Supplier quality overview
                                     </div>
                                     <p class="panel-subtitle">
-                                        Calls
-                                        <code>/api/suppliers/quality</code> and
-                                        shows reject rate per supplier.
+                                        GET
+                                        <code>/api/suppliers/quality</code> –
+                                        reject rate per supplier.
                                     </p>
                                 </div>
                                 <button class="btn" id="btnLoadSuppliers">
@@ -67,9 +67,9 @@
                                         Trace a serial
                                     </div>
                                     <p class="panel-subtitle">
-                                        Calls
-                                        <code>/api/serial/:serial/trace</code>
-                                        to find batch, supplier and affected
+                                        GET
+                                        <code>/api/serial/:serial/trace</code> –
+                                        find batch, supplier and affected
                                         serials.
                                     </p>
                                 </div>
@@ -80,7 +80,7 @@
                                         id="serialInput"
                                         class="input"
                                         type="text"
-                                        placeholder="Enter a serial number, e.g. SN_S5_M1_B1_1"
+                                        placeholder="Enter a serial number"
                                         autocomplete="off"
                                     />
                                     <button
@@ -103,6 +103,52 @@
                                 Submit a serial number to see traceability info.
                             </div>
                         </div>
+
+                        <!-- Admin tools -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div>
+                                    <div class="panel-title">Admin tools</div>
+                                    <p class="panel-subtitle">
+                                        Clear and reseed demo data, and get
+                                        random serials to play with.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="admin-buttons">
+                                <button
+                                    class="btn btn-secondary"
+                                    id="btnClearDb"
+                                >
+                                    Clear DB
+                                </button>
+                                <button
+                                    class="btn btn-secondary"
+                                    id="btnSeedDb"
+                                >
+                                    Seed data
+                                </button>
+                            </div>
+                            <div class="admin-subsection">
+                                <div class="panel-subtitle small-subtitle">
+                                    GET <code>/api/serial/random</code> – 10
+                                    random serials
+                                </div>
+                                <button
+                                    class="btn btn-secondary btn-small"
+                                    id="btnRandomSerials"
+                                >
+                                    Load 10 serials
+                                </button>
+                                <div
+                                    id="randomSerialsResults"
+                                    class="results results-empty"
+                                >
+                                    Click “Load 10 serials” to see example
+                                    serial numbers.
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Right: Endpoint catalog -->
@@ -114,34 +160,29 @@
                                         Available endpoints
                                     </div>
                                     <p class="panel-subtitle">
-                                        Quick overview of the REST API exposed
-                                        by your backend.
+                                        Quick overview of what the backend
+                                        exposes.
                                     </p>
                                 </div>
-                                <span class="badge">Read-only PoC</span>
+                                <span class="badge">Read-only demo</span>
                             </div>
                             <div class="endpoint-list">
                                 <article class="endpoint-card">
                                     <div class="endpoint-top">
                                         <span class="endpoint-path"
-                                            >GET&nbsp;/api/health</span
+                                            >GET /api/health</span
                                         >
                                         <span class="method">GET</span>
                                     </div>
                                     <p class="endpoint-desc">
-                                        Health check used by this page to verify
-                                        connectivity with the Deno backend.
+                                        Simple health check used by this page.
                                     </p>
-                                    <div class="endpoint-tags">
-                                        <span class="tag">health</span>
-                                        <span class="tag">status</span>
-                                    </div>
                                 </article>
 
                                 <article class="endpoint-card">
                                     <div class="endpoint-top">
                                         <span class="endpoint-path"
-                                            >GET&nbsp;/api/suppliers/quality</span
+                                            >GET /api/suppliers/quality</span
                                         >
                                         <span class="method">GET</span>
                                     </div>
@@ -150,38 +191,69 @@
                                         based on <code>Serial</code> and
                                         <code>Inspection</code>.
                                     </p>
-                                    <div class="endpoint-tags">
-                                        <span class="tag">analytics</span>
-                                        <span class="tag">suppliers</span>
-                                        <span class="tag">reject-rate</span>
-                                    </div>
                                 </article>
 
                                 <article class="endpoint-card">
                                     <div class="endpoint-top">
                                         <span class="endpoint-path"
-                                            >GET&nbsp;/api/serial/:serial/trace</span
+                                            >GET /api/serial/:serial/trace</span
                                         >
                                         <span class="method">GET</span>
                                     </div>
                                     <p class="endpoint-desc">
-                                        Trace a specific serial back to its
-                                        batch and supplier, and list all serials
-                                        from that batch.
+                                        Trace a serial back to its batch and
+                                        supplier, plus other serials from that
+                                        batch.
                                     </p>
-                                    <div class="endpoint-tags">
-                                        <span class="tag">traceability</span>
-                                        <span class="tag">root-cause</span>
-                                        <span class="tag">serial</span>
+                                </article>
+
+                                <article class="endpoint-card">
+                                    <div class="endpoint-top">
+                                        <span class="endpoint-path"
+                                            >GET /api/serial/random</span
+                                        >
+                                        <span class="method">GET</span>
                                     </div>
+                                    <p class="endpoint-desc">
+                                        Return ten random serial numbers to make
+                                        testing easier.
+                                    </p>
+                                </article>
+
+                                <article class="endpoint-card">
+                                    <div class="endpoint-top">
+                                        <span class="endpoint-path"
+                                            >POST /api/admin/clear</span
+                                        >
+                                        <span class="method method-post"
+                                            >POST</span
+                                        >
+                                    </div>
+                                    <p class="endpoint-desc">
+                                        Clear all data in the Neo4j database (no
+                                        auth, demo only!).
+                                    </p>
+                                </article>
+
+                                <article class="endpoint-card">
+                                    <div class="endpoint-top">
+                                        <span class="endpoint-path"
+                                            >POST /api/admin/seed</span
+                                        >
+                                        <span class="method method-post"
+                                            >POST</span
+                                        >
+                                    </div>
+                                    <p class="endpoint-desc">
+                                        Create the random demo dataset again.
+                                    </p>
                                 </article>
                             </div>
                         </div>
 
                         <p class="muted helper-text">
-                            Later you can add more panels for new endpoints
-                            (e.g. by material, product model, or a graph
-                            visualization).
+                            This doesn’t aim to be production-grade – it’s just
+                            a small helper UI for your proof-of-concept.
                         </p>
                     </div>
                 </div>
